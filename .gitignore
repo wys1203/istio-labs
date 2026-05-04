@@ -1,0 +1,18 @@
+# Downloaded istioctl
+bin/
+
+# Local-only override files
+*.local.yaml
+
+# Grafana state if anything writes locally
+grafana-data/
+
+# Go build artefacts
+*.test
+*.exe
+coverage.out
+
+# Editor / OS cruft
+.DS_Store
+.idea/
+.vscode/
