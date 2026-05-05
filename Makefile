@@ -41,15 +41,23 @@ install-istio: ## install istio 1.16.7 (multi-arch; istioctl downloaded on deman
 	@# causes the operator to add a duplicate containerPort on the Deployment, failing apply.
 	$(KCTX) -n istio-system patch svc istio-ingressgateway --type=strategic \
 		-p '{"spec":{"ports":[{"name":"http-envoy-prom","port":15090,"targetPort":15090,"protocol":"TCP"}]}}'
-install-apps:       ## install ws-chaos + http-echo + Gateway/VS/DR
+install-apps: build ## install ws-chaos + http-echo + Gateway/VS/DR
+	$(KCTX) apply -f apps/ws-chaos/manifest.yaml
+	$(KCTX) apply -f apps/http-echo/manifest.yaml
+	$(KCTX) apply -f istio/gateway.yaml
+	$(KCTX) -n apps rollout status deploy/ws-chaos --timeout=120s
+	$(KCTX) -n apps rollout status deploy/http-echo --timeout=120s
 install-monitoring: ## install kube-prometheus-stack + dashboards + alerts + webhook-logger
 install-load:       ## install ws-prober + fortio
 # bodies filled in subsequent tasks
 
 ##@ Build
 .PHONY: build
-build: ## build & kind-load ws-chaos / ws-prober images
-# body filled in Task 11 / 15
+build: ## build & kind-load ws-chaos and ws-prober images
+	docker build -t ws-chaos:dev   apps/ws-chaos
+	docker build -t ws-prober:dev  apps/load/ws-prober
+	kind load docker-image ws-chaos:dev   --name istio-lab
+	kind load docker-image ws-prober:dev  --name istio-lab
 
 ##@ Verify
 .PHONY: verify
