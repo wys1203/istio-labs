@@ -13,3 +13,50 @@ spec:
       protocol: HTTP
     hosts:
     - "*"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: lab-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - lab-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /ws
+    route:
+    - destination:
+        host: ws-chaos.apps.svc.cluster.local
+        port: {number: 8080}
+  - match:
+    - uri:
+        prefix: /http
+    route:
+    - destination:
+        host: http-echo.apps.svc.cluster.local
+        port: {number: 80}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: ws-chaos
+  namespace: apps
+spec:
+  host: ws-chaos.apps.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        connectTimeout: 5s
+        maxConnections: 1024
+      http:
+        idleTimeout: 60s
+        h2UpgradePolicy: DO_NOT_UPGRADE
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 10s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
