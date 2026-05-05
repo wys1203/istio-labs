@@ -3,7 +3,7 @@ SHELL := /usr/bin/env bash
 .DEFAULT_GOAL := help
 
 ROOT_DIR := $(shell pwd)
-ISTIOCTL := $(ROOT_DIR)/bin/istio-1.13.5/bin/istioctl
+ISTIOCTL := $(ROOT_DIR)/bin/istio-1.16.7/bin/istioctl
 KCTX := kubectl --context=kind-istio-lab
 
 ##@ Help
@@ -32,7 +32,15 @@ install-cluster: ## kind create cluster
 		kind create cluster --config kind/istio-lab.yaml --wait 120s; \
 	fi
 	$(KCTX) cluster-info
-install-istio:      ## install istio 1.13.5
+install-istio: ## install istio 1.16.7 (multi-arch; istioctl downloaded on demand)
+	bash scripts/bootstrap-istio.sh
+	$(ISTIOCTL) install -y -f istio/operator.yaml --context=kind-istio-lab
+	$(KCTX) -n istio-system rollout status deploy/istiod --timeout=180s
+	$(KCTX) -n istio-system rollout status deploy/istio-ingressgateway --timeout=180s
+	@# http-envoy-prom (15090) added post-install — declaring it in IstioOperator service.ports
+	@# causes the operator to add a duplicate containerPort on the Deployment, failing apply.
+	$(KCTX) -n istio-system patch svc istio-ingressgateway --type=strategic \
+		-p '{"spec":{"ports":[{"name":"http-envoy-prom","port":15090,"targetPort":15090,"protocol":"TCP"}]}}'
 install-apps:       ## install ws-chaos + http-echo + Gateway/VS/DR
 install-monitoring: ## install kube-prometheus-stack + dashboards + alerts + webhook-logger
 install-load:       ## install ws-prober + fortio

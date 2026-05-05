@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/lib.sh"
 
-ISTIO_VERSION=1.13.5
+ISTIO_VERSION=1.16.7
 TARGET_DIR="${ROOT_DIR}/bin"
 
 if [[ -x "${ISTIOCTL}" ]]; then

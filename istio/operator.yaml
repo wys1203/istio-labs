@@ -1,0 +1,57 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-lab
+  namespace: istio-system
+spec:
+  profile: minimal
+  values:
+    global:
+      proxy:
+        autoInject: disabled
+  components:
+    pilot:
+      enabled: true
+      k8s:
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits:   {cpu: 500m, memory: 512Mi}
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        replicaCount: 2
+        hpaSpec:
+          minReplicas: 2
+          maxReplicas: 2
+        resources:
+          requests: {cpu: 100m, memory: 128Mi}
+          limits:   {cpu: 300m, memory: 256Mi}
+        podDisruptionBudget:
+          minAvailable: 1
+        service:
+          type: NodePort
+          ports:
+          - {name: status-port, port: 15021, targetPort: 15021, nodePort: 30021}
+          - {name: http2,       port: 80,    targetPort: 8080,  nodePort: 30080}
+          - {name: https,       port: 443,   targetPort: 8443,  nodePort: 30443}
+          # http-envoy-prom (15090) is added post-install via kubectl patch in the
+          # install-istio Makefile target. It cannot be declared here because the
+          # istio operator already declares containerPort 15090 on the proxy
+          # container by default; declaring it again in service.ports causes the
+          # operator to add a duplicate containerPort to the Deployment, which
+          # fails server-side apply with a duplicate-key error.
+        podAnnotations:
+          proxy.istio.io/config: |
+            proxyStatsMatcher:
+              inclusionRegexps:
+              - "cluster\\..*\\.upstream_cx_.*"
+              - "cluster\\..*\\.upstream_rq_.*"
+              - "cluster\\..*\\.outlier_detection\\..*"
+              - "cluster\\..*\\.health_check\\..*"
+              - "cluster\\..*\\.membership_.*"
+              - "cluster\\..*\\.circuit_breakers\\..*"
+              inclusionPrefixes:
+              - "listener"
+              - "http"
+              - "server"

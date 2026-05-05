@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ISTIOCTL="${ROOT_DIR}/bin/istio-1.13.5/bin/istioctl"
+ISTIOCTL="${ROOT_DIR}/bin/istio-1.16.7/bin/istioctl"
 KIND_CLUSTER_NAME="istio-lab"
 KUBECONTEXT="kind-${KIND_CLUSTER_NAME}"
 
