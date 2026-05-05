@@ -25,7 +25,13 @@ status: ## print key endpoints
 
 ##@ Install (granular)
 .PHONY: install-cluster install-istio install-apps install-monitoring install-load
-install-cluster:    ## kind create cluster
+install-cluster: ## kind create cluster
+	@if kind get clusters | grep -qx istio-lab; then \
+		echo "kind cluster 'istio-lab' already exists"; \
+	else \
+		kind create cluster --config kind/istio-lab.yaml --wait 120s; \
+	fi
+	$(KCTX) cluster-info
 install-istio:      ## install istio 1.13.5
 install-apps:       ## install ws-chaos + http-echo + Gateway/VS/DR
 install-monitoring: ## install kube-prometheus-stack + dashboards + alerts + webhook-logger
