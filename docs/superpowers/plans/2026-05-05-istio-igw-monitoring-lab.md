@@ -2854,32 +2854,26 @@ git add README.md
 git commit -m "docs: README with quick start, pain-point map, and prod-porting guide"
 ```
 
-### Task 31: GitHub repo create + push
+### Task 31: Final push to GitHub
 
-> **Decision required**: visibility = public or private. Default is `--public` per spec §11.
+The remote `origin → git@github.com:wys1203/istio-labs.git` (public, default branch `main`) was created up-front, so all commits made during the previous phases just need to be pushed.
 
-- [ ] **Step 1: Create remote**
-
-```bash
-gh repo create wys1203/istio-labs --public --source=. --remote=origin
-```
-
-If user prefers private: change `--public` to `--private`.
-
-- [ ] **Step 2: Push**
+- [ ] **Step 1: Push all phase commits**
 
 ```bash
-git push -u origin main
+git push origin main
 ```
 
-- [ ] **Step 3: Verify**
+Expected: every commit from Tasks 1-30 lands on `main`.
+
+- [ ] **Step 2: Verify**
 
 ```bash
 gh repo view wys1203/istio-labs --web
 ```
-Expected: opens browser to repo page; default branch `main`; README rendered.
+Expected: README rendered; latest commit matches `git log -1 --oneline`.
 
-- [ ] **Step 4: No commit** (push is the final action).
+- [ ] **Step 3: No commit** (push is the final action).
 
 ---
 
